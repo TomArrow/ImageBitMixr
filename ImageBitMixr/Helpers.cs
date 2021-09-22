@@ -11,6 +11,14 @@ namespace ImageBitMixr
 {
     static public class Helpers
     {
+
+
+        static public double smooooth(double x,double gamma)
+        {
+            return (1 + (1 - Math.Pow(1 - Math.Abs(2 * x - 1), gamma)) * Math.Sign(2 * x - 1)) / 2;
+        }
+
+
         static public BitmapImage BitmapToImageSource(Bitmap bitmap)
         {
             using (MemoryStream memory = new MemoryStream())

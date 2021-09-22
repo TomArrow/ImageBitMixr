@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ImageBitMixr"
         mc:Ignorable="d"
-        Title="BitMixr" Height="450" Width="800">
+        Title="BitMixr" Height="650" Width="800">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition></ColumnDefinition>
@@ -23,6 +23,9 @@
             <TextBlock>(Output resolution is that of image 1)</TextBlock>
             <Button x:Name="btnLoadImage1" Click="btnLoadImage1_Click">Load image 1</Button>
             <Button x:Name="btnLoadImage2" Click="btnLoadImage2_Click">Load image 2</Button>
+            <WrapPanel>
+                <Label>Subsample (mult of 2):</Label>
+                <TextBox MinWidth="40" x:Name="subsampleTxt">1</TextBox></WrapPanel>
             <Label>Ratio:</Label>
             <Slider Minimum="0" Maximum="1" Value="0.5" x:Name="ratioSlider" ValueChanged="Slider_ValueChanged"></Slider>
             <Button x:Name="btnDoMix" Click="btnDoMix_Click">Mix!</Button>

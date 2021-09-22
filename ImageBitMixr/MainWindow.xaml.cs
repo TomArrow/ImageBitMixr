@@ -31,6 +31,7 @@ namespace ImageBitMixr
         struct SourceImage
         {
             public float[,] pixelBits;
+            public int pixelBitsSubSampling; // multiple of 2
             public float ratio;
             public Bitmap srcImage;
         }
@@ -87,6 +88,8 @@ namespace ImageBitMixr
             }
             return retVal;
         } 
+
+
 
         private void btnLoadImage1_Click(object sender, RoutedEventArgs e)
         {
