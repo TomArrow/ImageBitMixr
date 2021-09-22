@@ -33,15 +33,16 @@
             <GroupBox Header="Animate">
                 <StackPanel>
                     <Label>Stepsize</Label>
-                    <Slider Minimum="0" Maximum="1" Value="0.05" x:Name="stepSlider" ValueChanged="Slider_ValueChanged"></Slider>
+                    <Slider Minimum="0" Maximum="0.1" Value="0.01" x:Name="stepSlider" ValueChanged="Slider_ValueChanged"></Slider>
                     <TextBlock Text="{Binding ElementName=stepSlider, Path=Value}"></TextBlock>
                     <Label>FPS</Label>
-                    <Slider Minimum="1" Maximum="60" Value="5" x:Name="fpsSlider" ValueChanged="Slider_ValueChanged"></Slider>
+                    <Slider Minimum="1" Maximum="60" Value="24" x:Name="fpsSlider" ValueChanged="Slider_ValueChanged"></Slider>
                     <TextBlock Text="{Binding ElementName=fpsSlider, Path=Value}"></TextBlock>
 
                     <TextBlock TextWrapping="Wrap">Ratio Gamma (from center,over 1=emphasize edge values)</TextBlock>
                     <Slider Minimum="0" Maximum="5" Value="2" x:Name="ratioGammaSlider" ValueChanged="Slider_ValueChanged"></Slider>
                     <TextBlock Text="{Binding ElementName=ratioGammaSlider, Path=Value}"></TextBlock>
+                    <CheckBox x:Name="gammaOnHalfsCheck" IsChecked="False">Gamma on halfs</CheckBox>
                     <Button x:Name="animateBtn" Click="animateBtn_Click">Animate!</Button>
                     <WrapPanel>
                         <Label>Status:</Label>

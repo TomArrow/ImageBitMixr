@@ -15,7 +15,9 @@ namespace ImageBitMixr
 
         static public double smooooth(double x,double gamma)
         {
-            return (1 + (1 - Math.Pow(1 - Math.Abs(2 * x - 1), gamma)) * Math.Sign(2 * x - 1)) / 2;
+            double xTransposed = 2 * x - 1;
+            //return (1 + (1 - Math.Pow(1 - Math.Abs(2 * x - 1), gamma)) * Math.Sign(2 * x - 1)) / 2;
+            return (1 + (1 - Math.Pow(1 - Math.Abs(xTransposed), gamma)) * Math.Sign(xTransposed)) / 2;
         }
 
 

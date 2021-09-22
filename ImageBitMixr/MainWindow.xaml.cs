@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -282,6 +283,7 @@ namespace ImageBitMixr
             double ratioStepSize = stepSlider.Value;
             double fps = fpsSlider.Value;
             double gamma = ratioGammaSlider.Value;
+            bool gammaOnHalfs = gammaOnHalfsCheck.IsChecked==true;
             await Task.Run(()=> { 
                 int ratioStepCount =(int)(1+ Math.Ceiling(1.0 / ratioStepSize)); // 1+ because 0 is also a value.
             
@@ -289,52 +291,66 @@ namespace ImageBitMixr
                 for(int i = 0; i < ratioStepCount; i++)
                 {
                     double linearValue = Math.Min(1.0, i * ratioStepSize);
-                    double distanceFromCenter = Math.Abs(linearValue - 0.5);
-                    double sign = Math.Sign(linearValue - 0.5);
-
-                    double distanceFromCenterWithGamma = Math.Pow(distanceFromCenter*2,1/gamma)/2;
-                    double valueWithGamma = 0.5 + distanceFromCenterWithGamma * sign;
-
-                    ratiosToDo[i] = valueWithGamma;
-                }
-
-                AviWriter writer = new AviWriter(Helpers.GetUnusedFilename("result.avi")) {
-                    FramesPerSecond = (decimal)fps,
-                    // Emitting AVI v1 index in addition to OpenDML index (AVI v2)
-                    // improves compatibility with some software, including 
-                    // standard Windows programs like Media Player and File Explorer
-                    EmitIndex1 = true
-                };
-            
-                IAviVideoStream stream= writer.AddEncodingVideoStream(new SharpAvi.Codecs.UncompressedVideoEncoder(imagesToMix[0].srcImage.Width, imagesToMix[0].srcImage.Height), width:imagesToMix[0].srcImage.Width,height: imagesToMix[0].srcImage.Height);
-            
-
-                int pixelCount = imagesToMix[0].srcImage.Width * imagesToMix[0].srcImage.Height * 4;
-                byte[] buffer = new byte[pixelCount];
-
-                int index = 0;
-                foreach (double ratio in ratiosToDo)
-                {
-                    setRatio(ratio);
-                    using (Bitmap bitmap = getMixedImage())
+                    double valueWithGamma = 0;
+                    if (gammaOnHalfs)
                     {
-                        var bits = bitmap.LockBits(new Rectangle(0, 0, stream.Width, stream.Height), ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppRgb);
-                        Marshal.Copy(bits.Scan0, buffer, 0, buffer.Length);
-                        bitmap.UnlockBits(bits);
-                        stream.WriteFrame(true, buffer, 0, buffer.Length);
-                        //stream.WriteFrame(true, image, 0, pixelCount);
+                        double distanceFromCenter = Math.Abs(linearValue - 0.5);
+                        double sign = Math.Sign(linearValue - 0.5);
+
+                        //double distanceFromCenterWithGamma = Math.Pow(distanceFromCenter*2,1/gamma)/2;
+                        double distanceFromCenterWithGamma = Helpers.smooooth(distanceFromCenter * 2, gamma) / 2;
+                        valueWithGamma = 0.5 + distanceFromCenterWithGamma * sign;
 
                     }
-
-                    Dispatcher.Invoke(()=> {
-                        animationStatusTxt.Text = "Rendering video. " + (++index) + " frames out of " + ratioStepCount.ToString();
-
-                    });
+                    else
+                    {
+                        valueWithGamma = Helpers.smooooth(linearValue, gamma);
+                    }
                     
+                    ratiosToDo[i] = valueWithGamma;
                 }
+                using (FileStream fs = File.Open(Helpers.GetUnusedFilename("result.avi"),FileMode.CreateNew,FileAccess.Write,FileShare.Read))
+                {
+
+                    AviWriter writer = new AviWriter(fs)
+                    {
+                        FramesPerSecond = (decimal)fps,
+                        // Emitting AVI v1 index in addition to OpenDML index (AVI v2)
+                        // improves compatibility with some software, including 
+                        // standard Windows programs like Media Player and File Explorer
+                        EmitIndex1 = true
+                    };
+            
+                    IAviVideoStream stream= writer.AddEncodingVideoStream(new SharpAvi.Codecs.UncompressedVideoEncoder(imagesToMix[0].srcImage.Width, imagesToMix[0].srcImage.Height), width:imagesToMix[0].srcImage.Width,height: imagesToMix[0].srcImage.Height);
+            
+
+                    int pixelCount = imagesToMix[0].srcImage.Width * imagesToMix[0].srcImage.Height * 4;
+                    byte[] buffer = new byte[pixelCount];
+
+                    int index = 0;
+                    foreach (double ratio in ratiosToDo)
+                    {
+                        setRatio(ratio);
+                        using (Bitmap bitmap = getMixedImage())
+                        {
+                            var bits = bitmap.LockBits(new Rectangle(0, 0, stream.Width, stream.Height), ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppRgb);
+                            Marshal.Copy(bits.Scan0, buffer, 0, buffer.Length);
+                            bitmap.UnlockBits(bits);
+                            stream.WriteFrame(true, buffer, 0, buffer.Length);
+                            //stream.WriteFrame(true, image, 0, pixelCount);
+
+                        }
+
+                        Dispatcher.Invoke(()=> {
+                            animationStatusTxt.Text = "Rendering video. " + (++index) + " frames out of " + ratioStepCount.ToString();
+
+                        });
+                    
+                    }
 
 
-                writer.Close();
+                    writer.Close();
+                }
                 //resultBitmap = getMixedImage();
             });
             animationStatusTxt.Text = "Video done";
